@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import FormAddUser from './components/FormAddUser';
-import CardUsers from './components/CardUsers';
+import FormEditDeleteUsers from './components/FormEditDeleteUsers';
 
 const App = () => {
 
@@ -34,7 +34,7 @@ const App = () => {
       <div className='bg-green-700 mx-10 px-3 py-1 text-sm'>
         {usersList.map((user) => {
             return(
-              <CardUsers key={user.id} user={user} getUsers={getUsers}/>
+              <FormEditDeleteUsers key={user.id} user={user} getUsers={getUsers}/>
             )})}
       </div>
       <ToggleAddUser/>

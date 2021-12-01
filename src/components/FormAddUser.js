@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React from 'react';
-import {useState, useEffect} from 'react';
+import { useState } from 'react';
 
 const FormAddUser = ({setToggleAddUserForm, getUsers}) => {
 
@@ -11,12 +11,10 @@ const FormAddUser = ({setToggleAddUserForm, getUsers}) => {
     email: ''
   }
   const [newUser, setNewUser] = useState(clean)
-  const [nameOK, setNameOK] = useState(false)
-  const [companyOK, setCompanyOK] = useState(false)
   const [emailOK, setEmailOK] = useState(false)
   const [sendForm, setSendForm] = useState(false)
 
-  const simplevalidationemail = (email) => {
+  const simplevalidation = (email) => {
     var mail_format = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
     if(mail_format.test(email)){
       setEmailOK(true)
@@ -28,15 +26,18 @@ const FormAddUser = ({setToggleAddUserForm, getUsers}) => {
   const handleChange = (e) => {
       const newdata = {[e.target.name]: e.target.value}
       setNewUser(olduser => ({...olduser, ...newdata}))
+      simplevalidation(newUser.email);
+      console.log('email', newUser.email, emailOK)
   }
 
-  const addUser = async(e) => {
-    e.preventDefault()
-    newUser.name === '' ? setNameOK(false) : setNameOK(true)
-    newUser.company === '' ? setCompanyOK(false) : setCompanyOK(true)
-    simplevalidationemail(newUser.email)
-    setSendForm(true)
-    if (nameOK && companyOK && emailOK) {      
+  const handleSend = (e) => {
+    e.preventDefault();
+    setSendForm(true);
+    addUser();
+  }
+
+  const addUser = async() => {
+    if (newUser.company && newUser.name && emailOK) {      
       let respuesta = await axios.post('https://618ff3c8f6bf450017484ae0.mockapi.io/api/content/users', newUser)
       if (respuesta) {
         setNewUser(clean)
@@ -46,15 +47,15 @@ const FormAddUser = ({setToggleAddUserForm, getUsers}) => {
 
   return (
       <div className='bg-yellow-500 mx-10 my-3 p-3 text-sm'>
-      <form onSubmit={(e) => {addUser(e)}} className='bg-yellow-200 flex flex-row items-center my-1'>
+      <form onSubmit={(e) => {handleSend(e)}} className='bg-yellow-200 flex flex-row items-center my-1'>
         <div className='flex flex-wrap flex-1'>
-          <input className={`p-2 m-1 flex flex-1 focus:bg-white ${!sendForm || nameOK ? 'bg-yellow-50' : 'bg-red-200'}`}
-            placeholder={nameOK ? 'Name' : 'Please write username'}
+          <input className={`p-2 m-1 flex flex-1 focus:bg-white ${!sendForm || newUser.name ? 'bg-yellow-50' : 'bg-red-200'}`}
+            placeholder={newUser.name ? 'Name' : 'Please write username'}
             name='name'
             value={newUser.name}
             onChange={handleChange}/>
-          <input className={`p-2 m-1 flex flex-1 focus:bg-white ${!sendForm || companyOK ? 'bg-yellow-50' : 'bg-red-200'}`}
-            placeholder={companyOK ? 'Company' : 'Please write company name'}
+          <input className={`p-2 m-1 flex flex-1 focus:bg-white ${!sendForm || newUser.company ? 'bg-yellow-50' : 'bg-red-200'}`}
+            placeholder={newUser.company ? 'Company' : 'Please write company name'}
             name='company'
             value={newUser.company}
             onChange={handleChange}/>
