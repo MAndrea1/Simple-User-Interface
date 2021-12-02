@@ -1,74 +1,44 @@
 import axios from 'axios';
-import React from 'react';
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 const FormAddUser = ({setToggleAddUserForm, getUsers}) => {
 
-  const clean = {
-    name: '',
-    company: '',
-    catchPhrase: '',
-    email: ''
-  }
-  const [newUser, setNewUser] = useState(clean)
-  const [emailOK, setEmailOK] = useState(false)
-  const [sendForm, setSendForm] = useState(false)
-
-  const simplevalidation = (email) => {
-    var mail_format = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
-    if(mail_format.test(email)){
-      setEmailOK(true)
-    } else {
-      setEmailOK(false)
-    }
-  }
-
-  const handleChange = (e) => {
-      const newdata = {[e.target.name]: e.target.value}
-      setNewUser(olduser => ({...olduser, ...newdata}))
-      simplevalidation(newUser.email);
-      console.log('email', newUser.email, emailOK)
-  }
-
-  const handleSend = (e) => {
-    e.preventDefault();
-    setSendForm(true);
-    addUser();
-  }
-
-  const addUser = async() => {
-    if (newUser.company && newUser.name && emailOK) {      
-      let respuesta = await axios.post('https://618ff3c8f6bf450017484ae0.mockapi.io/api/content/users', newUser)
-      if (respuesta) {
-        setNewUser(clean)
-        getUsers()
-    }}
+  const { register, handleSubmit, formState: { errors } } = useForm();
+ 
+  const onSubmit = async (e) => {
+    console.log(e)
+    const added = await axios.post('https://618ff3c8f6bf450017484ae0.mockapi.io/api/content/users', e)
+    if (added) getUsers()
   }
 
   return (
       <div className='bg-yellow-500 mx-10 my-3 p-3 text-sm'>
-      <form onSubmit={(e) => {handleSend(e)}} className='bg-yellow-200 flex flex-row items-center my-1'>
+        <div className='flex flex-row'>
+      {Object.values(errors).map((error) => {
+        return(<h1 key={error.message} className='flex-1'>{error.message}</h1>)})}
+        </div>
+      <form onSubmit={handleSubmit(onSubmit)} className='bg-yellow-200 flex flex-row items-center my-1'>
         <div className='flex flex-wrap flex-1'>
-          <input className={`p-2 m-1 flex flex-1 focus:bg-white ${!sendForm || newUser.name ? 'bg-yellow-50' : 'bg-red-200'}`}
-            placeholder={newUser.name ? 'Name' : 'Please write username'}
+          <input className={`p-2 m-1 flex flex-1 focus:bg-white bg-yellow-50`}
+            type='text'
+            placeholder='name'
             name='name'
-            value={newUser.name}
-            onChange={handleChange}/>
-          <input className={`p-2 m-1 flex flex-1 focus:bg-white ${!sendForm || newUser.company ? 'bg-yellow-50' : 'bg-red-200'}`}
-            placeholder={newUser.company ? 'Company' : 'Please write company name'}
+            {...register('name', {required: 'Name required', minLength: {value:2, message: 'Name should be longer than one letter'}})}/>
+          <input className={`p-2 m-1 flex flex-1 focus:bg-white bg-yellow-50`}
+            type='text'
+            placeholder='company'
             name='company'
-            value={newUser.company}
-            onChange={handleChange}/>
+            {...register('company', {required: 'Company required'})}/>
           <input className='p-2 m-1 flex flex-1 bg-yellow-50 focus:bg-white'
+            type='text'
             placeholder='Motto'
             name='catchPhrase'
-            value={newUser.catchPhrase}
-            onChange={handleChange}/>
-          <input className={`p-2 m-1 flex flex-1 focus:bg-white ${!sendForm || emailOK ? 'bg-yellow-50' : 'bg-red-200'}`}
-            placeholder={emailOK ? 'E-mail' : 'Please write e-mail'}
+            {...register('catchPhrase')}/>
+          <input className={`p-2 m-1 flex flex-1 focus:bg-white bg-yellow-50`}
+            type='email'
+            placeholder='e-mail'
             name='email'
-            value={newUser.email}
-            onChange={handleChange}/>
+            {...register('email', {required: 'E-mail required'})}/>
         </div>
         <div className='flex flex-wrap flex-col lg:flex-row'>
           <button className='mx-1 my-2 w-16 font-bold hover:text-yellow-600'>Add User</button>

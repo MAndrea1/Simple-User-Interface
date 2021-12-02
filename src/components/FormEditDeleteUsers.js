@@ -1,6 +1,6 @@
 import axios from 'axios';
-import React from 'react';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 const FormEditDeleteUsers = ({user, getUsers}) => {
 
@@ -12,49 +12,25 @@ const FormEditDeleteUsers = ({user, getUsers}) => {
   }
 
   const [editing, setEditing] = useState(false)
-  const [newUser, setNewUser] = useState(current)
-  const [emailOK, setEmailOK] = useState(false)
-  const [sendForm, setSendForm] = useState(false)
 
-  const simplevalidation = (email) => {
-    var mail_format = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
-    if(mail_format.test(email)){
-      setEmailOK(true)
-    } else {
-      setEmailOK(false)
-    }
+  const { register, handleSubmit, reset,  formState: { errors } } = useForm(
+    {defaultValues: current}
+  );
+ 
+  const onSubmit = async (e) => {
+    console.log(e)
+    const added = await axios.put('https://618ff3c8f6bf450017484ae0.mockapi.io/api/content/users/' + user.id, e)
+    if (added) getUsers()
   }
 
-  const handleChange = (e) => {
-      const newdata = {[e.target.name]: e.target.value}
-      setNewUser(olduser => ({...olduser, ...newdata}))
-      simplevalidation(newUser.email);
-      console.log(newUser)
-  }
-
-  const editUser = async() => {
-    if (newUser.company && newUser.name && emailOK) {      
-      let respuesta = await axios.put('https://618ff3c8f6bf450017484ae0.mockapi.io/api/content/users/' + user.id, newUser)
-      if (respuesta) {
-        setEditing(false)
-        getUsers()
-    }}
-  }
-
-  const handleSend = (e) => {
-    e.preventDefault();
-    setSendForm(true);
-    editUser();
+  const handleCancel = () => {
+    reset()
+    setEditing(false)
   }
 
   const deleteUsers = async (user) => {
     const duser = await axios.delete('https://618ff3c8f6bf450017484ae0.mockapi.io/api/content/users/'+ user)
     if (duser) getUsers()
-  }
-
-  const handleCancel = () => {
-    setNewUser(current)
-    setEditing(false)
   }
 
   const ManageButtons = () => {
@@ -76,37 +52,43 @@ const FormEditDeleteUsers = ({user, getUsers}) => {
   }
 
   return (
-      <form onSubmit={(e) => {handleSend(e)}} className={`${editing ? 'bg-green-500' : 'bg-yellow-200'} flex flex-row items-center my-2`}>
+    <div className={`${editing ? 'bg-green-500' : 'bg-yellow-200'} flex flex-col items-center my-2`}>
+      <form onSubmit={handleSubmit(onSubmit)} className={`${editing ? 'bg-green-500' : 'bg-yellow-200'} flex flex-wrap flex-row items-center my-2`}>
         <div className='flex flex-wrap flex-1'>
-          <input className={`p-2 m-1 flex flex-1 focus:bg-white ${!sendForm || newUser.name ? 'bg-yellow-50' : 'bg-red-200'}`}
-            placeholder={newUser.name ? 'Name' : 'Please write username'}
+          <input className={`p-2 m-1 flex flex-1 focus:bg-white bg-yellow-50`}
+            type='text'
+            placeholder='name'
             name='name'
-            value={newUser.name}
-            onChange={handleChange}
-            disabled = {editing ? '' : 'disabled'}/>
-          <input className={`p-2 m-1 flex flex-1 focus:bg-white ${!sendForm || newUser.company ? 'bg-yellow-50' : 'bg-red-200'}`}
-            placeholder={newUser.company ? 'Company' : 'Please write company name'}
+            disabled = {editing ? '' : 'disabled'}
+            {...register('name', {required: 'Name required', minLength: {value:2, message: 'Name should be longer than one letter'}})}/>
+          <input className={`p-2 m-1 flex flex-1 focus:bg-white bg-yellow-50`}
+            type='text'
+            placeholder='company'
             name='company'
-            value={newUser.company}
-            onChange={handleChange}
-            disabled = {editing ? '' : 'disabled'}/>
+            disabled = {editing ? '' : 'disabled'}
+            {...register('company', {required: 'Company required'})}/>
           <input className='p-2 m-1 flex flex-1 bg-yellow-50 focus:bg-white'
+            type='text'
             placeholder='Motto'
             name='catchPhrase'
-            value={newUser.catchPhrase}
-            onChange={handleChange}
-            disabled = {editing ? '' : 'disabled'}/>
-          <input className={`p-2 m-1 flex flex-1 focus:bg-white ${!sendForm || emailOK ? 'bg-yellow-50' : 'bg-red-200'}`}
-            placeholder={emailOK ? 'E-mail' : 'Please write e-mail'}
+            disabled = {editing ? '' : 'disabled'}
+            {...register('catchPhrase')}/>
+          <input className={`p-2 m-1 flex flex-1 focus:bg-white bg-yellow-50`}
+            type='email'
+            placeholder='e-mail'
             name='email'
-            value={newUser.email}
-            onChange={handleChange}
-            disabled = {editing ? '' : 'disabled'}/>
+            disabled = {editing ? '' : 'disabled'}
+            {...register('email', {required: 'E-mail required'})}/>
         </div>
         <div className='flex flex-wrap flex-col lg:flex-row'>
           <ManageButtons></ManageButtons>
         </div>
       </form>
+        <div className='flex flex-row'>
+      {Object.values(errors).map((error) => {
+        return(<h1 key={error.message} className='flex-1 mb-2 text-white font-bold'>{error.message}</h1>)})}
+        </div>
+    </div>
   )
 }
 
